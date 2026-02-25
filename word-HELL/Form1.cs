@@ -86,18 +86,19 @@ namespace word_HELL
 
         private void LblCustomLabel_Paint(object sender, PaintEventArgs e)
         {
-            // Получаем размер шрифта первого символа
-            //SizeF size = e.Graphics.MeasureString(label1.Text[highlightPosition].ToString(), label1.Font);
+            if (highlightPosition < label1.Text.Length)
+            {
+                // Вычисляем позицию текущего символа для подсветки
+                SizeF size = e.Graphics.MeasureString(label1.Text[highlightPosition].ToString(), label1.Font);
+                int x = e.ClipRectangle.X + (int)(size.Width * highlightPosition);
+                int y = e.ClipRectangle.Y;
+                int width = (int)size.Width;
+                int height = e.ClipRectangle.Height;
 
-            //// Рассчитываем координаты прямоугольника для подсветки
-            //int x = e.ClipRectangle.X + (int)(size.Width * highlightPosition);
-            //int y = e.ClipRectangle.Y;
-            //int width = (int)size.Width;
-            //int height = e.ClipRectangle.Height;
-
-            //// Рисуем красный фон вокруг выделенного символа
-            //Rectangle rect = new Rectangle(x, y, width, height);
-            //e.Graphics.FillRectangle(redBrush, rect);
+                // Подсвечиваем символ
+                Rectangle rect = new Rectangle(x, y, width, height);
+                e.Graphics.FillRectangle(redBrush, rect);
+            }
         }
 
         private void label1_KeyPress(object sender, KeyPressEventArgs e)
@@ -136,28 +137,28 @@ namespace word_HELL
             }
 
 
-            // Далее ограничиваем максимум
-            if (highlightPosition < maxHighlightPosition)
-            {
-                highlightPosition++;
-                label1.Text = MakeCapital(label1.Text, highlightPosition);
-
-            }
-
             if (highlightPosition == 4 && label1.Text.Length > 5 && label1.Text[5] == ' ')
             {
                 highlightPosition++;
             }
+            // Далее ограничиваем максимум
+            if (highlightPosition < maxHighlightPosition)
+            {
+                highlightPosition++;
+               
+
+            }
+
 
             if (highlightPosition >= maxHighlightPosition)
             {
-                highlightPosition = 5;
                 var currentText = label1.Text.Remove(0, 1);
                 currentText += chars[index++];
 
                 // Обновляем лейбл
 
-                label1.Text = MakeCapital(currentText, highlightPosition);
+                label1.Text = currentText;
+                highlightPosition = 0;
             }
         }
     }
