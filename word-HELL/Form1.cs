@@ -74,17 +74,17 @@ namespace word_HELL
 
         private void LblCustomLabel_Paint(object sender, PaintEventArgs e)
         {
-            if (raskraska < label1.Text.Length)
+            if (highlightPosition < label1.Text.Length)
             {
                 // Полупрозрачная красная кисть
                 var redTransparentBrush = new SolidBrush(Color.FromArgb(80, Color.Red));
 
                 // Получаем текст до текущего символа
-                string beforeText = label1.Text.Substring(0, raskraska);
+                string beforeText = label1.Text.Substring(0, highlightPosition);
                 float offsetX = e.Graphics.MeasureString(beforeText, label1.Font).Width;
 
                 // Измеряем точный размер символа
-                SizeF charSize = e.Graphics.MeasureString(label1.Text[raskraska].ToString(), label1.Font);
+                SizeF charSize = e.Graphics.MeasureString(label1.Text[highlightPosition].ToString(), label1.Font);
 
                 // Настройка коррекции размеров прямоугольника
                 float paddingLeft = -1f;     // Немного уменьшим левую границу
@@ -108,28 +108,41 @@ namespace word_HELL
         {
             if (gameRunning)
             {
-                if (indexxx < 5)
-                {
-                    char enteredChar = e.KeyChar;
-                    char firstChar = label1.Text[indexxx];
+                // Проверяем правильность ввода символа
+                char pressedChar = Convert.ToChar(e.KeyChar);
+                char currentChar = label1.Text[highlightPosition];
 
-                    if (enteredChar == firstChar)
-                    {
-                        RemoveAndAddNewChar();
-                    }
-                }
-                else
+                if (pressedChar == currentChar)
                 {
-                    char enteredChar = e.KeyChar;
-                    char firstChar = label1.Text[5];
-
-                    if (enteredChar == firstChar)
-                    {
-                        RemoveAndAddNewChar();
-                    }
+                    // Перемещаем подсветку вперед
+                    MoveHighlightForward();
                 }
-                indexxx++;
             }
+
+            //if (gameRunning)
+            //{
+            //    if (indexxx < 5)
+            //    {
+            //        char enteredChar = e.KeyChar;
+            //        char firstChar = label1.Text[indexxx];
+
+            //        if (enteredChar == firstChar)
+            //        {
+            //            MoveHighlightForward();
+            //        }
+            //    }
+            //    else
+            //    {
+            //        char enteredChar = e.KeyChar;
+            //        char firstChar = label1.Text[5];
+
+            //        if (enteredChar == firstChar)
+            //        {
+            //            //RemoveAndAddNewChar();
+            //        }
+            //    }
+            //    indexxx++;
+            //}
         }
 
         private void RemoveAndAddNewChar()
@@ -155,7 +168,7 @@ namespace word_HELL
                 label1.Invalidate();
                 label1.Text = currentText;
                 highlightPosition += 1;
-                MoveHighlightForward(false);
+                MoveHighlightForward();
 
             }
             if(highlightPosition < maxHighlightPosition) 
@@ -166,23 +179,34 @@ namespace word_HELL
                 //Обновляем лейбл
                 label1.Invalidate();
                 label1.Text = currentText;
-                MoveHighlightForward(true);
+                MoveHighlightForward();
             }
         }
-        private void MoveHighlightForward(bool xxx)
+        private void MoveHighlightForward()
         {
-            if (xxx)
+            if (highlightPosition < 4) // Перемещаем подсветку максимум до 5-го символа
             {
-                if (raskraska < 4) // Позволяем увеличивать позицию до пятого символа
-                {
-                    raskraska++;
-                    label1.Invalidate(); // Пересчитываем изображение для перерисовки лейбла
-                }
+                highlightPosition++;
+                label1.Invalidate(); // Требуется перерисовка лейбла
             }
             else
             {
-                raskraska = 4; // Фиксируем подсветку на пятом символе
-                label1.Invalidate();
+                // Если достигли 5-ой позиции, начинаем замену символов
+                ShiftCharacters();
+            }
+        }
+
+        private void ShiftCharacters()
+        {
+            if (index < chars.Count)
+            {
+                // Убираем первый символ и добавляем новый
+                string currentText = label1.Text.Remove(0, 1);
+                currentText += chars[index++];
+
+                // Обновляем лейбл
+                label1.Text = currentText;
+                label1.Invalidate(); // Требуется перерисовка лейбла
             }
         }
     }
