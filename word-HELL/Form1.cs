@@ -18,11 +18,10 @@ namespace word_HELL
 
         int index = 10;
         bool gameRunning = false;
-        SolidBrush redBrush = new SolidBrush(Color.Red);
         int highlightPosition = 0;
         int maxHighlightPosition = 5;
 
-        int highlightIndex = 0;
+        int raskraska = 0;
 
         int indexxx = 0;
 
@@ -64,21 +63,10 @@ namespace word_HELL
             label1.Refresh();
         }
 
-        private string MakeCapital(string input, int position)
-        {
-            if (position >= input.Length || position < 0)
-                return input;
-
-            char[] array = input.ToCharArray();
-            array[position] = Char.ToUpper(array[position]); // преобразование символа в верхний регистр
-            return new string(array);
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             if (!gameRunning)
             {
-                RemoveAndAddNewChar();
                 gameRunning = true;
                 label1.Focus(); // Переключаемся на label для возможности захвата событий KeyPress
             }
@@ -86,18 +74,33 @@ namespace word_HELL
 
         private void LblCustomLabel_Paint(object sender, PaintEventArgs e)
         {
-            if (highlightPosition < label1.Text.Length)
+            if (raskraska < label1.Text.Length)
             {
-                // Вычисляем позицию текущего символа для подсветки
-                SizeF size = e.Graphics.MeasureString(label1.Text[highlightPosition].ToString(), label1.Font);
-                int x = e.ClipRectangle.X + (int)(size.Width * highlightPosition);
-                int y = e.ClipRectangle.Y;
-                int width = (int)size.Width;
-                int height = e.ClipRectangle.Height;
+                // Полупрозрачная красная кисть
+                var redTransparentBrush = new SolidBrush(Color.FromArgb(80, Color.Red));
 
-                // Подсвечиваем символ
+                // Получаем текст до текущего символа
+                string beforeText = label1.Text.Substring(0, raskraska);
+                float offsetX = e.Graphics.MeasureString(beforeText, label1.Font).Width;
+
+                // Измеряем точный размер символа
+                SizeF charSize = e.Graphics.MeasureString(label1.Text[raskraska].ToString(), label1.Font);
+
+                // Настройка коррекции размеров прямоугольника
+                float paddingLeft = -1f;     // Немного уменьшим левую границу
+                float paddingRight = 1f;      // Увеличим правую границу
+                float paddingTop = -1f;       // Немного увеличим верхнюю границу
+                float paddingBottom = 1f;     // Увеличим нижнюю границу
+
+                // Координаты и размеры прямоугольника с поправками
+                int x = e.ClipRectangle.X + (int)Math.Round(offsetX + paddingLeft);
+                int y = e.ClipRectangle.Y + (int)Math.Round(paddingTop);
+                int width = (int)Math.Round(charSize.Width + paddingRight - paddingLeft);
+                int height = (int)Math.Round(charSize.Height + paddingBottom - paddingTop);
+
+                // Прямоугольник для подсветки
                 Rectangle rect = new Rectangle(x, y, width, height);
-                e.Graphics.FillRectangle(redBrush, rect);
+                e.Graphics.FillRectangle(redTransparentBrush, rect);
             }
         }
 
@@ -141,13 +144,6 @@ namespace word_HELL
             {
                 highlightPosition++;
             }
-            // Далее ограничиваем максимум
-            if (highlightPosition < maxHighlightPosition)
-            {
-                highlightPosition++;
-               
-
-            }
 
 
             if (highlightPosition >= maxHighlightPosition)
@@ -155,13 +151,39 @@ namespace word_HELL
                 var currentText = label1.Text.Remove(0, 1);
                 currentText += chars[index++];
 
-                // Обновляем лейбл
-
+                //Обновляем лейбл
+                label1.Invalidate();
                 label1.Text = currentText;
-                highlightPosition = 0;
+                highlightPosition += 1;
+                MoveHighlightForward(false);
+
+            }
+            if(highlightPosition < maxHighlightPosition) 
+            {
+                var currentText = label1.Text.Remove(0, 1);
+                currentText += chars[index++];
+
+                //Обновляем лейбл
+                label1.Invalidate();
+                label1.Text = currentText;
+                MoveHighlightForward(true);
+            }
+        }
+        private void MoveHighlightForward(bool xxx)
+        {
+            if (xxx)
+            {
+                if (raskraska < 4) // Позволяем увеличивать позицию до пятого символа
+                {
+                    raskraska++;
+                    label1.Invalidate(); // Пересчитываем изображение для перерисовки лейбла
+                }
+            }
+            else
+            {
+                raskraska = 4; // Фиксируем подсветку на пятом символе
+                label1.Invalidate();
             }
         }
     }
 }
-
-
