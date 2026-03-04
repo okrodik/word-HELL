@@ -19,11 +19,10 @@ namespace word_HELL
         int index = 10;
         bool gameRunning = false;
         int highlightPosition = 0;
-        int maxHighlightPosition = 5;
 
-        int raskraska = 0;
+        int indexer = 0;
 
-        int indexxx = 0;
+        string fileText;
 
         public Form1()
         {
@@ -33,6 +32,7 @@ namespace word_HELL
 
             label1.KeyPress += label1_KeyPress;
             label1.Paint += LblCustomLabel_Paint;
+            label1.Text = "";
 
         }
 
@@ -43,16 +43,16 @@ namespace word_HELL
                 return;
             }
             string fileName = openFileDialog1.FileName;
-            string fileText = File.ReadAllText(fileName);
+            fileText = File.ReadAllText(fileName);
 
             foreach (char ch in fileText)
             {
                 chars.Add(ch);
             }
 
-            UpdateLabelWithFirstTenChars();
+            UpdateLabel();
         }
-        private void UpdateLabelWithFirstTenChars()
+        private void UpdateLabel()
         {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < Math.Min(chars.Count, 10); i++)
@@ -115,88 +115,33 @@ namespace word_HELL
                 if (pressedChar == currentChar)
                 {
                     // Перемещаем подсветку вперед
-                    MoveHighlightForward();
+                    Dvizenie();
                 }
             }
-
-            //if (gameRunning)
-            //{
-            //    if (indexxx < 5)
-            //    {
-            //        char enteredChar = e.KeyChar;
-            //        char firstChar = label1.Text[indexxx];
-
-            //        if (enteredChar == firstChar)
-            //        {
-            //            MoveHighlightForward();
-            //        }
-            //    }
-            //    else
-            //    {
-            //        char enteredChar = e.KeyChar;
-            //        char firstChar = label1.Text[5];
-
-            //        if (enteredChar == firstChar)
-            //        {
-            //            //RemoveAndAddNewChar();
-            //        }
-            //    }
-            //    indexxx++;
-            //}
         }
 
-        private void RemoveAndAddNewChar()
+       
+        private void Dvizenie()
         {
-            if (index >= chars.Count || chars.Count <= 0)
-            {
-                return; // Завершаем процесс, если больше нечего брать
-            }
-
-
-            if (highlightPosition == 4 && label1.Text.Length > 5 && label1.Text[5] == ' ')
+            if (highlightPosition < 4 || fileText.Length - 5 <= indexer) // Перемещаем подсветку максимум до 5 символа и в конце
             {
                 highlightPosition++;
+                label1.Invalidate(); 
+                indexer++;
+            }
+            else 
+            {
+                Zamena();
+                indexer++;
             }
 
-
-            if (highlightPosition >= maxHighlightPosition)
+            if (fileText.Length < indexer)
             {
-                var currentText = label1.Text.Remove(0, 1);
-                currentText += chars[index++];
-
-                //Обновляем лейбл
-                label1.Invalidate();
-                label1.Text = currentText;
-                highlightPosition += 1;
-                MoveHighlightForward();
-
-            }
-            if(highlightPosition < maxHighlightPosition) 
-            {
-                var currentText = label1.Text.Remove(0, 1);
-                currentText += chars[index++];
-
-                //Обновляем лейбл
-                label1.Invalidate();
-                label1.Text = currentText;
-                MoveHighlightForward();
-            }
-        }
-        private void MoveHighlightForward()
-        {
-            if (highlightPosition < 4) // Перемещаем подсветку максимум до 5-го символа
-            {
-                highlightPosition++;
-                label1.Invalidate(); // Требуется перерисовка лейбла
-            }
-            else
-            {
-                // Если достигли 5-ой позиции, начинаем замену символов
-                ShiftCharacters();
+                WINResult();
             }
         }
 
-        private void ShiftCharacters()
+        private void Zamena()
         {
             if (index < chars.Count)
             {
@@ -206,8 +151,18 @@ namespace word_HELL
 
                 // Обновляем лейбл
                 label1.Text = currentText;
-                label1.Invalidate(); // Требуется перерисовка лейбла
+                label1.Invalidate();
             }
+        }
+
+        private void WINResult()
+        {
+            label1.Text = "";
+            label1.Invalidate();
+            indexer = 0;
+            gameRunning = false;
+            highlightPosition = 0;
+            MessageBox.Show("YOU WIM");
         }
     }
 }
