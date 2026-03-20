@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace word_HELL
 {
     public partial class Form1 : Form
     {
+        Label[] labels = new Label[10];
         List<char> chars = new List<char>();
 
         int index = 10;
@@ -31,9 +26,23 @@ namespace word_HELL
             openFileDialog1.Filter = "Text files(*.txt)|*.txt| All files(*.*)|*.*";
 
             label1.KeyPress += label1_KeyPress;
-            label1.Paint += LblCustomLabel_Paint;
             label1.Text = "";
 
+            CreateLabel();
+        }
+
+        private void CreateLabel()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                labels[i] = new Label();
+                labels[i].Location = new Point(150 + 50 * i, 100);
+                labels[i].AutoSize = true;
+                labels[i].Text = "";
+                labels[i].Font = new Font("Arial", 14f, FontStyle.Bold);
+
+                this.Controls.Add(labels[i]);
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -51,16 +60,15 @@ namespace word_HELL
             }
 
             UpdateLabel();
+            paintLabel(0);
         }
+
         private void UpdateLabel()
         {
-            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < Math.Min(chars.Count, 10); i++)
             {
-                sb.Append(chars[i]);
+                labels[i].Text = chars[i].ToString();           
             }
-            label1.Text = sb.ToString();
-            label1.Refresh();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -68,53 +76,29 @@ namespace word_HELL
             if (!gameRunning)
             {
                 gameRunning = true;
-                label1.Focus(); // Переключаемся на label для возможности захвата событий KeyPress
+                label1.Focus();
             }
         }
 
-        private void LblCustomLabel_Paint(object sender, PaintEventArgs e)
+        private void paintLabel(int x)
         {
-            if (highlightPosition < label1.Text.Length)
+            for (int i = 0; i < labels.Length; i++)
             {
-                // Полупрозрачная красная кисть
-                var redTransparentBrush = new SolidBrush(Color.FromArgb(80, Color.Red));
-
-                // Получаем текст до текущего символа
-                string beforeText = label1.Text.Substring(0, highlightPosition);
-                float offsetX = e.Graphics.MeasureString(beforeText, label1.Font).Width;
-
-                // Измеряем точный размер символа
-                SizeF charSize = e.Graphics.MeasureString(label1.Text[highlightPosition].ToString(), label1.Font);
-
-                // Настройка коррекции размеров прямоугольника
-                float paddingLeft = -1f;     // Немного уменьшим левую границу
-                float paddingRight = 1f;      // Увеличим правую границу
-                float paddingTop = -1f;       // Немного увеличим верхнюю границу
-                float paddingBottom = 1f;     // Увеличим нижнюю границу
-
-                // Координаты и размеры прямоугольника с поправками
-                int x = e.ClipRectangle.X + (int)Math.Round(offsetX + paddingLeft);
-                int y = e.ClipRectangle.Y + (int)Math.Round(paddingTop);
-                int width = (int)Math.Round(charSize.Width + paddingRight - paddingLeft);
-                int height = (int)Math.Round(charSize.Height + paddingBottom - paddingTop);
-
-                // Прямоугольник для подсветки
-                Rectangle rect = new Rectangle(x, y, width, height);
-                e.Graphics.FillRectangle(redTransparentBrush, rect);
+                labels[i].ForeColor = Color.Black;
             }
+
+            labels[x].ForeColor = Color.Red;
         }
 
         private void label1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (gameRunning)
             {
-                // Проверяем правильность ввода символа
                 char pressedChar = Convert.ToChar(e.KeyChar);
-                char currentChar = label1.Text[highlightPosition];
+                char currentChar = Convert.ToChar(labels[highlightPosition].Text);
 
                 if (pressedChar == currentChar)
                 {
-                    // Перемещаем подсветку вперед
                     Dvizenie();
                 }
             }
@@ -123,7 +107,7 @@ namespace word_HELL
        
         private void Dvizenie()
         {
-            if (highlightPosition < 4 || fileText.Length - 5 <= indexer) // Перемещаем подсветку максимум до 5 символа и в конце
+            if (highlightPosition < 4 || fileText.Length - 5 <= indexer)
             {
                 highlightPosition++;
                 label1.Invalidate(); 
@@ -139,19 +123,20 @@ namespace word_HELL
             {
                 WINResult();
             }
+
+            paintLabel(highlightPosition);
         }
 
         private void Zamena()
         {
             if (index < chars.Count)
             {
-                // Убираем первый символ и добавляем новый
-                string currentText = label1.Text.Remove(0, 1);
-                currentText += chars[index++];
+                for (int i = 0; i < labels.Length - 1; i++)
+                {
+                    labels[i].Text = labels[i + 1].Text;
+                }
 
-                // Обновляем лейбл
-                label1.Text = currentText;
-                label1.Invalidate();
+                labels[9].Text = chars[index++].ToString();
             }
         }
 
